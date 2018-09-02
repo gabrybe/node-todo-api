@@ -19,15 +19,21 @@ MongoClient.connect("mongodb://localhost:27017/TodoApp", { useNewUrlParser: true
 
   // mongodb crea in automatico le collection se non esistono
   // insertOne(object, callback)
-  db.collection("Todos").insertOne({
-    text: "Something to do - another note",
-    completed: false
-  }, (err, result) => {
-    if (err) {
-      return console.log("Unable to insert in Todos collection", err)
-    }
-    // documents inseriti: in result.ops
-    console.log(JSON.stringify(result.ops, undefined, 2));
+  var notes = [];
+  for (let i = 0; i < 10; i++) {
+    notes.push({text: `Note ${i} - Something to do ${i}`, completed: false});
+  }
+
+  notes.forEach((element, index, array) => {
+
+    db.collection("Todos").insertOne(element, (err, result) => {
+      if (err) {
+        return console.log("Unable to insert in Todos collection", err)
+      }
+      // documents inseriti: in result.ops
+      console.log(JSON.stringify(result.ops, undefined, 2));
+    });
+
   });
 
   db.collection("Users").insertOne({
