@@ -58,3 +58,5 @@ var newUser = new User({
   console.log("Unable to save user: ", err);
 });
 */
+
+module.exports = {app};
