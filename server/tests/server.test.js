@@ -102,7 +102,56 @@ describe("GET todos/:id", () => {
       .expect(404)
       .end(done);
 
-  })
+  });
+
+});
+
+// UPDATE
+describe("PATCH todos/:id", () => {
+  var hexId = todos[0]._id.toHexString();
+  var updatedTodoData = {completed: true};
+
+  it("should update and return an object", (done) => {
+
+    request(app)
+      .patch(`/todos/${hexId}`)
+      .send(updatedTodoData)
+      .expect(200)
+      .expect((res) => {
+        /*expect(res.body.todo.text).toBe(todos[0].text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBe(Number);*/
+        expect(res.body.todo).toInclude({
+          completed: true
+        });
+
+        expect(res.body.todo.completedAt).toBeA("number");
+      })
+      .end(done);
+  });
+
+  it("should return 404 if todo not found", (done) => {
+    // creo un nuovo objectid, quindi sicuramente non può esistere già sul DB
+    var id = new ObjectID();
+
+    request(app)
+      .patch(`/todos/${id.toHexString()}`)
+      .send(updatedTodoData)
+      .expect(404)
+      .end(done);
+
+  });
+
+  it("should return 404 if id is invalid", (done) => {
+    var id = "1234";
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(updatedTodoData)
+      .expect(404)
+      .end(done);
+
+  });
 
 });
 

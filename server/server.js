@@ -1,7 +1,8 @@
-﻿var express = require("express");
-var bodyParser = require("body-parser");
-
+﻿const _ = require("lodash");
+const express = require("express");
+const bodyParser = require("body-parser");
 const {ObjectID} = require("mongodb");
+
 var {mongoose} = require("./db/mongoose");
 var {Todo} = require("./models/todo");
 var {User} = require("./models/user");
@@ -9,6 +10,9 @@ var {User} = require("./models/user");
 var app = express();
 
 const port = process.env.PORT || 3000;
+
+// per eliminare alcuni deprecation warnings nel richiamo di findByIdAndUpdate
+mongoose.set('useFindAndModify', false);
 
 // middleware
 app.use(bodyParser.json());
@@ -77,6 +81,39 @@ app.delete("/todos/:id", (req, res) => {
     res.send({todo});
   }).catch((err) => {
     res.status(400).send(err);
+  });
+
+});
+
+// metodo http per aggiornare una risorsa
+app.patch("/todos/:id", (req, res) => {
+  var id = req.params.id;
+  // pick() recupera da un oggetto, una serie di proprietà (se esistono)
+  var body = _.pick(req.body, ["text", "completed"]);
+
+
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send(`Invalid id ${req.params.id}`);
+  }
+
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime(); // restituisce una js timestamp (millisecondi dal 1/1/70)
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  // aggiorniamo il documento con il body
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    return res.send({todo});
+    if (!todo) {
+      return res.status(404).send("Todo not defined");
+    }
+
+    res.send({todo});
+
+  }).catch((err) => {
+    return res.status(400).send(err);
   });
 
 });
