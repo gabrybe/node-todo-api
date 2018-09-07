@@ -18,7 +18,9 @@ const todos = [{
   text: "Test todo 1 text:" + new Date()
 }, {
   _id: new ObjectID(),
-  text: "Test todo 2 text:" + new Date()
+  text: "Test todo 2 text:" + new Date(),
+  completed: true,
+  completedAt: 333
 }];
 
 describe("POST /todos", () => {
@@ -108,10 +110,10 @@ describe("GET todos/:id", () => {
 
 // UPDATE
 describe("PATCH todos/:id", () => {
-  var hexId = todos[0]._id.toHexString();
-  var updatedTodoData = {completed: true};
+  var hexId = todos[1]._id.toHexString();
+  var updatedTodoData = {completed: false, text: "Not really completed"};
 
-  it("should update and return an object", (done) => {
+  it("should update a todo removing completedAt and setting completed to false", (done) => {
 
     request(app)
       .patch(`/todos/${hexId}`)
@@ -120,12 +122,29 @@ describe("PATCH todos/:id", () => {
       .expect((res) => {
         /*expect(res.body.todo.text).toBe(todos[0].text);
         expect(res.body.todo.completed).toBe(true);
-        expect(res.body.todo.completedAt).toBe(Number);*/
+        expect(res.body.todo.completedAt).toNotExist();*/
         expect(res.body.todo).toInclude({
-          completed: true
+          completed: false,
+          completedAt: null
         });
 
+      })
+      .end(done);
+  });
+
+  it("should update a todo setting completed to true", (done) => {
+
+    request(app)
+      .patch(`/todos/${hexId}`)
+      .send({completed: true, text: "Now Completed"})
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo).toInclude({
+          completed: true,
+          text: "Now Completed"
+        });
         expect(res.body.todo.completedAt).toBeA("number");
+
       })
       .end(done);
   });

@@ -105,7 +105,7 @@ app.patch("/todos/:id", (req, res) => {
 
   // aggiorniamo il documento con il body
   Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
-    return res.send({todo});
+
     if (!todo) {
       return res.status(404).send("Todo not defined");
     }
