@@ -59,8 +59,26 @@ app.get("/todos/:id", (req, res) => {
     res.send({todo});
 
   }, (err) => {
-    res.status(404).send(err);
+    res.status(400).send(err);
   });
+});
+
+// DELETE resource
+app.delete("/todos/:id", (req, res) => {
+  // return res.send(req.params);
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(404).send(`Invalid id ${req.params.id}`);
+  }
+
+  Todo.findOneAndDelete(req.params.id).then((todo) => {
+    if (!todo) {
+       return res.status(404).send(`Todo ${req.params.id} not found.`);
+    }
+    res.send(todo);
+  }).catch((err) => {
+    res.status(400).send(err);
+  });
+
 });
 
 
