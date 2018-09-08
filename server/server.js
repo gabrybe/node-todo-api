@@ -37,7 +37,6 @@ app.post("/todos", (req, res) => {
     res.status(400).send(err);
   });
 
-  console.log(req.body);
 });
 
 // Read: get al server
@@ -121,6 +120,30 @@ app.patch("/todos/:id", (req, res) => {
 
 });
 
+// Login
+app.post("/users", (req, res) => {
+  // creiamo un'istanza del model
+  // pick() recupera da un oggetto, una serie di proprietà (se esistono)
+  var body = _.pick(req.body, ["email", "password"]);
+
+  // in body ci sono già tutti e soli i campi che valorizzano uno User
+  var user = new User(body);
+
+  // posso omettere l'argument "user" alla funzione richiamata al then(), perché si tratta dello stesso oggetto "user" creato sopra
+  //user.save().then((user) => {
+  user.save().then(() => {
+    // restituiamo al chiamante lo user appena inserito
+    return user.generateAuthToken();
+  }).then((token) => {
+    // inviamo anche un custom header di autorizzazione con il token
+    res.header("x-auth", token).send(user);
+  }).catch((err) => {
+    // oppure l'errore
+    console.log(err);
+    res.status(400).send(err);
+  });
+
+});
 
 app.listen(port, () => {
   console.log(`Started on port ${port}`);
