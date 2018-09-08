@@ -57,6 +57,28 @@ UserSchema.methods.generateAuthToken = function() {
     return token;
   });
 }
+// metodi "di classe" (del model)
+// Verifichiamo il token e restituiamo lo user corrispondente
+UserSchema.statics.findByToken = function(token) {
+
+  // il "this" in questo caso è il modello
+  // var User = this
+  var decodedUser;
+
+  try {
+    decodedUser = jwt.verify(token, "somesecretvalue");
+  } catch (err) {
+    return Promise.reject("User not authorized");
+  }
+
+  // se il token è stato decodificato correttamente, si cerca lo user e si restituisce
+  return User.findOne({
+    "_id": decodedUser._id,
+    // per cercare campi annidati, bisogna esprimerli come stringhe separate da punti
+    "tokens.token": token,
+    "tokens.access": "auth"
+  });
+};
 
 var User = mongoose.model("User", UserSchema);
 
