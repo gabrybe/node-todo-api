@@ -2,6 +2,7 @@
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
+const bcrypt = require("bcryptjs");
 
 var UserSchema = new mongoose.Schema({
   email: {
@@ -79,6 +80,34 @@ UserSchema.statics.findByToken = function(token) {
     "tokens.access": "auth"
   });
 };
+
+// prima di un evento "save" viene eseguito questo codice (hook)
+// usiamo una function per usare il this
+UserSchema.pre("save", function(next) {
+  var user = this;
+
+  // se la password è stata modificata, si riesegue l'hashing
+  if (user.isModified("password")) {
+
+    // hashing della password: 1) generiamo il salt 2) hashing vero e proprio di password + salt
+
+    // genSalt([numero di iterazioni per generarlo], callback(err, salt))
+    bcrypt.genSalt(10, (err, salt) => {
+      // hashing: hash(password, salt, callback(err, hash))
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        // scriviamo l'hash sul db
+        user.password = hash;
+        // bisogna chiamare "next" altrimenti si rimane bloccati qui (non si può usare un solo next() al di fuori della if)
+        next();
+      });
+    });
+
+  } else {
+    // bisogna chiamare "next" altrimenti si rimane bloccati qui
+    next();
+  }
+
+});
 
 var User = mongoose.model("User", UserSchema);
 
