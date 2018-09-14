@@ -5,8 +5,9 @@ const {ObjectID} = require("MongoDB");
 const {app} = require("./../server");
 const {Todo} = require("./../models/todo");
 
-const {todos, populateTodos} = require("./seed/seed.js");
+const {todos, populateTodos, users, populateUsers} = require("./seed/seed.js");
 
+beforeEach(populateUsers);
 beforeEach(populateTodos);
 
 describe("POST /todos", () => {
@@ -38,7 +39,7 @@ describe("POST /todos", () => {
 
       });
   });
-/*
+
   it("should not create todo with invalid body data", (done) => {
     var text = "";
 
@@ -58,9 +59,9 @@ describe("POST /todos", () => {
       });
 
   });
-  */
+
 });
-/*
+
 describe("GET todos/:id", () => {
 
   it("should return an object", (done) => {
@@ -208,4 +209,27 @@ describe("DELETE todos/:id", () => {
   })
 
 });
-*/
+
+describe("GET /users/me", () => {
+  it("should return user if authenticated", (done) => {
+    request(app)
+      .get("/users/me")
+      .set("x-auth", users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+      })
+      .end(done);
+  });
+
+  it("should return 401 if not authenticated", (done) => {
+    request(app)
+      .get("/users/me")
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).toEqual({})
+      })
+      .end(done);
+  });
+});
